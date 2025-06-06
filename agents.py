@@ -22,7 +22,8 @@ class BaseAgent:
 
         openai_llm = ChatOpenAI(
             # api_key="sk-7m9omY3eybOG9QX5qyblR0MqT_ZlEjzy4aJ-m0NmOuT3BlbkFJmz7FZ8Yvk14cjpB7bi_p1eacdvnX6BuCiRFJ5NyrkA",
-            api_key="sk-btZS_f3ayuD0N-sYVg_h0C3kEUQfqWsQLQ20aO59VIT3BlbkFJP4Ll0eRk80vloOl6J9-gAIb9HZiP4BiivyChVPJVkA",
+            # api_key="sk-btZS_f3ayuD0N-sYVg_h0C3kEUQfqWsQLQ20aO59VIT3BlbkFJP4Ll0eRk80vloOl6J9-gAIb9HZiP4BiivyChVPJVkA",
+            api_key="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",
             model="gpt-4o-mini"
         )
         return groq_llm, openai_llm

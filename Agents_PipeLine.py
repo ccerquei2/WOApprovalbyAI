@@ -55,7 +55,7 @@ model1 = load_model()
 
 class PipeLineCoastJustify:
 
-    def __init__(self, environment='dev'):
+    def __init__(self, environment='prod'):
         config_loader = ConfigLoader(environment)
         db_config = config_loader.get_database_config()
         self.server = db_config['server']

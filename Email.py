@@ -13,7 +13,7 @@ from load_environment import ConfigLoader
 
 class PrepareEmail:
 
-    def __init__(self, environment='dev'):
+    def __init__(self, environment='prod'):
         config_loader = ConfigLoader(environment)
         db_config = config_loader.get_database_config()
         self.server = db_config['server']
@@ -39,12 +39,12 @@ class PrepareEmail:
 
     def destinatarios_email(self):
         query = f"""
-                SELECT DRDL01 
-                FROM  
-                    {self.schema_udc}.F0005 WITH (NOLOCK)  
-                WHERE  
+                SELECT DRDL01
+                FROM
+                    {self.schema_udc}.F0005 WITH (NOLOCK)
+                WHERE
                     DRSY = '58' AND
-                    DRRT = 'E5'                      
+                    DRRT = 'E5'
                 """
 
         engine = self.cria_Conn()
