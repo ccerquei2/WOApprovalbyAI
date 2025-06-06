@@ -13,7 +13,7 @@ import os
 
 class ApproveWorkOrder:
 
-    def __init__(self, environment='prod'):
+    def __init__(self, environment='dev'):
         config_loader = ConfigLoader(environment)
         db_config = config_loader.get_database_config()
         self.server = db_config['server']
@@ -92,7 +92,7 @@ class ApproveWorkOrder:
 
                 transport = Transport(session=session)
 
-                if environment == 'prod':    # URL do WSDL
+                if environment == 'dev':    # URL do WSDL
                     wsdl = 'https://bssvsistemas.granado.com.br:9061/PD910/CustomContabilizaOrdens?wsdl'
                 else:
                     wsdl = 'https://weberp06.granado.com.br:9052/PY910/CustomContabilizaOrdens?wsdl'

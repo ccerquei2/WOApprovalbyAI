@@ -3,10 +3,12 @@ from langchain_groq import ChatGroq
 import pyodbc
 import pandas as pd
 import joblib
+from decrypt import decrypt_keys
 
 # Configurar o modelo LLM ChatGroq com Mixtral
 llm = ChatGroq(
-    api_key="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",
+
+    api_key=decrypt_keys("groq_api_key"),
     model="mixtral-8x7b-32768"
 )
 

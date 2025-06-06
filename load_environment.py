@@ -13,7 +13,7 @@ class ConfigLoader:
                 'schema_main': 'CRPDTA',
                 'schema_udc': 'CRPCTL'
             }
-        elif self.environment == 'prod':
+        elif self.environment == 'dev':
             db_config = {
                 'server': 'ENTERPRISE',
                 'database': 'JDE_PRODUCTION',

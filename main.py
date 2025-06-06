@@ -65,7 +65,6 @@
 # git add *
 # git commit -m "commit inicial14_11"
 # git remote add origin https://github.com/ccerquei2/ML_CostAnalysis_one.git
-https://github.com/ccerquei2/WOApprovalbyAI.git
 # git branch -M main11
 # git push -u origin main11
 #
@@ -120,10 +119,10 @@ from Email import PrepareEmail
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="__init__")
 
-environment = 'prod'
 # environment = 'dev'
+environment = 'dev'
 
-#def __init__(self, environment='prod'):
+#def __init__(self, environment='dev'):
 
 class Analise_WO:
     def buscar_justificativa_fabrica(self, SEQ_KEY):

@@ -10,7 +10,7 @@ from load_environment import ConfigLoader
 
 class Analise:
 
-    def __init__(self, environment='prod'):
+    def __init__(self, environment='dev'):
         config_loader = ConfigLoader(environment)
         db_config = config_loader.get_database_config()
         self.server = db_config['server']

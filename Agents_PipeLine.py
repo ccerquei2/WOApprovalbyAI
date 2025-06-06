@@ -17,6 +17,7 @@ import signal
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from load_environment import ConfigLoader
+from decrypt import decrypt_keys
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="__init__")
@@ -55,15 +56,16 @@ model1 = load_model()
 
 class PipeLineCoastJustify:
 
-    def __init__(self, environment='prod'):
+    def __init__(self, environment='dev'):
+        
         config_loader = ConfigLoader(environment)
         db_config = config_loader.get_database_config()
         self.server = db_config['server']
         self.database = db_config['database']
         # self.username = 'consultas_diretas'
         # self.password = 'c_diretas'
-        self.username = "usercisp"
-        self.password = "Dcfsds!245"
+        self.username = decrypt_keys("username")
+        self.password = decrypt_keys("password")
         self.schema_main = db_config['schema_main']
         self.schema_udc = db_config['schema_udc']
         self.root_path = os.path.dirname(os.path.abspath(__file__))
