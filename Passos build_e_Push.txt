@@ -1,0 +1,206 @@
+C:\Users\ccerq\OneDrive\Documentos\Python Scripts\AIGroqAgente
+
+git init
+git add * 
+git commit -m "commit inicial2"
+git remote add origin https://github.com/ccerquei2/ML_CostAnalysis_one.git
+git branch -M main
+git push -u origin main
+
+
+Sem problemas! Você pode criar o arquivo .gitignore no seu projeto seguindo estes passos:
+
+Crie o arquivo .gitignore:
+
+No diretório raiz do seu projeto, crie um novo arquivo chamado .gitignore.
+Adicione a pasta dist ao .gitignore:
+
+Abra o arquivo .gitignore com um editor de texto e adicione a linha para ignorar a pasta dist.
+dist/
+
+
+git rm -r --cached dist
+
+git add .gitignore
+git commit -m "Adicionar .gitignore e ignorar conteúdo da pasta dist"
+
+git push -u origin main
+
+Por exemplo:
+sh
+Copiar código
+git rm --cached build/AI_WO_Approval/AI_WO_Approval.pkg
+git rm --cached build/AI_WO_Approval/AI_WO_Approval.exe
+git rm --cached build/AI_WO_Approval/PYZ-00.pyz
+Adicione os arquivos grandes ao .gitignore:
+
+Crie ou edite o arquivo .gitignore na raiz do seu repositório e adicione os arquivos ou diretórios que você não quer versionar.
+Por exemplo, adicione:
+Copiar código
+build/
+
+git rm -r --cached build
+
+git add .gitignore
+git commit -m "Remove arquivos grandes e atualiza .gitignore"
+git push -u origin main
+
+
+
+
+
+
+# Navegue até o diretório do projeto
+cd C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis
+
+# Inicialize um novo repositório Git
+git init
+
+# Crie e configure o arquivo .gitignore
+echo dist/ > .gitignore
+echo build/ >> .gitignore
+echo oxnnruntime/ >> .gitignore
+
+# Adicione todos os arquivos e faça commit
+git add .
+git commit -m "Commit inicial"
+
+# Conecte ao repositório remoto e crie o branch main4
+git remote add origin https://github.com/ccerquei2/ML_CostAnalysis_one.git
+git checkout -b main4
+
+# Faça push para o branch main4
+git push -u origin main4
+
+
+----------------------------------
+
+
+PS C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis> git init
+Initialized empty Git repository in C:/Users/ccerq/OneDrive/Documentos/Python Scripts/ML_CostAnalysis/.git/
+PS C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis> git add .
+warning: in the working copy of '.idea/inspectionProfiles/profiles_settings.xml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'crewai/translations/en.json', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis> git commit -m "Commit inicial4"
+[master (root-commit) a8a4b95] Commit inicial4
+ 93 files changed, 31069 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 .idea/.gitignore
+ create mode 100644 .idea/ML_CostAnalysis.iml
+ create mode 100644 .idea/inspectionProfiles/profiles_settings.xml
+ create mode 100644 .idea/misc.xml
+ create mode 100644 .idea/modules.xml
+ create mode 100644 .idea/vcs.xml
+ create mode 100644 AI_WO_Approval.spec
+ create mode 100644 Agents_PipeLine.py
+ create mode 100644 Classify_WorkOrder.py
+ create mode 100644 Find_best_Parameters.py
+ create mode 100644 Justificativa_Fabrica.csv
+ create mode 100644 Source_one_ML_WorKOrder_Cost_Analysis.csv
+ create mode 100644 Train_and_save.py
+ create mode 100644 __pycache__/Agents_PipeLine.cpython-311.pyc
+ create mode 100644 __pycache__/Classify_WorkOrder.cpython-311.pyc
+ create mode 100644 __pycache__/agents.cpython-311.pyc
+ create mode 100644 __pycache__/tasks.cpython-311.pyc
+ create mode 100644 agents.py
+ create mode 100644 best_random_forest_model.joblib
+ create mode 100644 crewai/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/__pycache__/agent.cpython-311.pyc
+ create mode 100644 crewai/__pycache__/crew.cpython-311.pyc
+ create mode 100644 crewai/__pycache__/process.cpython-311.pyc
+ create mode 100644 crewai/__pycache__/task.cpython-311.pyc
+ create mode 100644 crewai/agents/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/agents/__pycache__/executor.cpython-311.pyc
+ create mode 100644 crewai/agents/__pycache__/parser.cpython-311.pyc
+ create mode 100644 crewai/agents/__pycache__/tools_handler.cpython-311.pyc
+ create mode 100644 crewai/agents/cache/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/agents/cache/__pycache__/cache_handler.cpython-311.pyc
+ create mode 100644 crewai/cli/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/cli/__pycache__/cli.cpython-311.pyc
+ create mode 100644 crewai/cli/__pycache__/create_crew.cpython-311.pyc
+ create mode 100644 crewai/cli/__pycache__/train_crew.cpython-311.pyc
+ create mode 100644 crewai/cli/templates/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/cli/templates/tools/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/cli/templates/tools/__pycache__/custom_tool.cpython-311.pyc
+ create mode 100644 crewai/memory/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/memory/__pycache__/memory.cpython-311.pyc
+ create mode 100644 crewai/memory/contextual/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/memory/contextual/__pycache__/contextual_memory.cpython-311.pyc
+ create mode 100644 crewai/memory/entity/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/memory/entity/__pycache__/entity_memory.cpython-311.pyc
+ create mode 100644 crewai/memory/entity/__pycache__/entity_memory_item.cpython-311.pyc
+ create mode 100644 crewai/memory/long_term/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/memory/long_term/__pycache__/long_term_memory.cpython-311.pyc
+ create mode 100644 crewai/memory/long_term/__pycache__/long_term_memory_item.cpython-311.pyc
+ create mode 100644 crewai/memory/short_term/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/memory/short_term/__pycache__/short_term_memory.cpython-311.pyc
+ create mode 100644 crewai/memory/short_term/__pycache__/short_term_memory_item.cpython-311.pyc
+ create mode 100644 crewai/memory/storage/__pycache__/interface.cpython-311.pyc
+ create mode 100644 crewai/memory/storage/__pycache__/ltm_sqlite_storage.cpython-311.pyc
+ create mode 100644 crewai/memory/storage/__pycache__/rag_storage.cpython-311.pyc
+ create mode 100644 crewai/project/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/project/__pycache__/annotations.cpython-311.pyc
+ create mode 100644 crewai/project/__pycache__/crew_base.cpython-311.pyc
+ create mode 100644 crewai/tasks/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/tasks/__pycache__/task_output.cpython-311.pyc
+ create mode 100644 crewai/telemetry/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/telemetry/__pycache__/telemetry.cpython-311.pyc
+ create mode 100644 crewai/tools/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/tools/__pycache__/agent_tools.cpython-311.pyc
+ create mode 100644 crewai/tools/__pycache__/cache_tools.cpython-311.pyc
+ create mode 100644 crewai/tools/__pycache__/tool_calling.cpython-311.pyc
+ create mode 100644 crewai/tools/__pycache__/tool_output_parser.cpython-311.pyc
+ create mode 100644 crewai/tools/__pycache__/tool_usage.cpython-311.pyc
+ create mode 100644 crewai/translations/.gitignore
+ create mode 100644 crewai/translations/en.json
+ create mode 100644 crewai/utilities/__pycache__/__init__.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/converter.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/crew_pydantic_output_parser.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/fileHandler.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/i18n.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/instructor.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/logger.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/parser.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/paths.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/printer.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/prompts.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/pydantic_schema_parser.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/rpm_controller.cpython-311.pyc
+ create mode 100644 crewai/utilities/__pycache__/token_counter_callback.cpython-311.pyc
+ create mode 100644 crewai/utilities/evaluators/__pycache__/task_evaluator.cpython-311.pyc
+ create mode 100644 db/chroma.sqlite3
+ create mode 100644 hook-crewai_utilities.py
+ create mode 100644 incorrect_classifications.csv
+ create mode 100644 main.py
+ create mode 100644 main_Ai_Analyst.py
+ create mode 100644 requirements.txt
+ create mode 100644 scaler.joblib
+ create mode 100644 scaler_test.joblib
+ create mode 100644 tasks.py
+PS C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis> git remote add origin https://github.com/ccerquei2/ML_CostAnalysis_one.git
+PS C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis> git checkout -b main4
+Switched to a new branch 'main4'
+PS C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis> git push -u origin main4
+Enumerating objects: 135, done.
+Counting objects: 100% (135/135), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (119/119), done.
+Writing objects: 100% (135/135), 4.88 MiB | 2.05 MiB/s, done.
+Total 135 (delta 12), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (12/12), done.
+To https://github.com/ccerquei2/ML_CostAnalysis_one.git
+ * [new branch]      main4 -> main4
+branch 'main4' set up to track 'origin/main4'.
+PS C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis> git checkout -b main5
+Switched to a new branch 'main5'
+PS C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis> git push -u origin main5
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+remote:
+remote: Create a pull request for 'main5' on GitHub by visiting:
+remote:      https://github.com/ccerquei2/ML_CostAnalysis_one/pull/new/main5
+remote:
+To https://github.com/ccerquei2/ML_CostAnalysis_one.git
+ * [new branch]      main5 -> main5
+branch 'main5' set up to track 'origin/main5'.
+PS C:\Users\ccerq\OneDrive\Documentos\Python Scripts\ML_CostAnalysis>
+

@@ -1,0 +1,24 @@
+# Pastas de build
+/onnxruntime/
+/dist/
+/build/
+/build/AI_WO_Approval/AI_WO_Approval.exe
+/build/AI_WO_Approval/AI_WO_Approval.pkg
+/dist/AI_WO_Approval/
+
+# Chaves e dados sens�veis
+*.env
+*.pem
+*.key
+age_key.txt
+secrets.yaml
+secrets.enc
+
+# Scripts de uso local
+encrypt.py
+decrypt.py
+
+# Cache e IDE
+__pycache__/
+*.pyc
+.idea/
