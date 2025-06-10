@@ -7,6 +7,7 @@ from sqlalchemy.engine import URL
 import joblib
 import json
 from load_environment import ConfigLoader
+from decrypt import decrypt_keys
 
 class Analise:
 
@@ -15,8 +16,8 @@ class Analise:
         db_config = config_loader.get_database_config()
         self.server = db_config['server']
         self.database = db_config['database']
-        self.username = 'consultas_diretas'
-        self.password = 'c_diretas'
+        self.username = decrypt_keys("user_diretas")
+        self.password = decrypt_keys("password_diretas")
         self.schema_main = db_config['schema_main']
         self.schema_udc = db_config['schema_udc']
         self.root_path = os.path.dirname(os.path.abspath(__file__))
@@ -33,24 +34,6 @@ class Analise:
         engine = create_engine(connection_url)
         return engine
 
-    # def __init__(self):
-    #     self.server = 'DBDEV'
-    #     self.database = 'JDE_CRP'
-    #     self.username = 'consultas_diretas'  # Substitua com seu usuário
-    #     self.password = 'c_diretas'  # Substitua com sua senha
-    #     self.root_path = os.path.dirname(os.path.abspath(__file__))  # Caminho da pasta raiz do executável
-    #
-    # def cria_Conn(self):
-    #     connection_string = (
-    #         f"DRIVER={{SQL Server}};"
-    #         f"SERVER={self.server};"
-    #         f"DATABASE={self.database};"
-    #         f"UID={self.username};"
-    #         f"PWD={self.password}"
-    #     )
-    #     connection_url = URL.create("mssql+pyodbc", query={"odbc_connect": connection_string})
-    #     engine = create_engine(connection_url)
-    #     return engine
 
 
     def justificativa_fabrica(self, SEQ_KEY, ORDEM):

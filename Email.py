@@ -8,8 +8,7 @@ import re
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from load_environment import ConfigLoader
-
-
+from decrypt import decrypt_keys
 
 class PrepareEmail:
 
@@ -18,8 +17,8 @@ class PrepareEmail:
         db_config = config_loader.get_database_config()
         self.server = db_config['server']
         self.database = db_config['database']
-        self.username = 'consultas_diretas'
-        self.password = 'c_diretas'
+        self.username = decrypt_keys("user_diretas")
+        self.password = decrypt_keys("password_diretas")
         self.schema_main = db_config['schema_main']
         self.schema_udc = db_config['schema_udc']
         self.root_path = os.path.dirname(os.path.abspath(__file__))
@@ -225,17 +224,14 @@ class PrepareEmail:
 
 
     def send_email(self, subject, body, to_addr, from_addr):
-        # Configuração do servidor SMTP do Outlook
-        # smtp_server = 'smtp.office365.com'
-        # smtp_port = 587
 
         lista_destinatarios = self.destinatarios_email()
         to_addr = lista_destinatarios
 
         if to_addr == '' or to_addr == []:
-            to_addr = "ccerqueira@granadophebo.com.br"
+            to_addr = decrypt_keys("email_ccerqu")
 
-        smtp_server = 'wsus.granado.com.br'
+        smtp_server = decrypt_keys("smtp_server_wsus")
         smtp_port = 25
 
         # Criando uma mensagem Multipart

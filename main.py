@@ -121,10 +121,10 @@ from Email import PrepareEmail
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="__init__")
 
-# environment = 'dev'
+# environment = 'prod'
 environment = 'dev'
 
-#def __init__(self, environment='dev'):
+# def __init__(self, environment='dev'):
 
 class Analise_WO:
     def buscar_justificativa_fabrica(self, SEQ_KEY):

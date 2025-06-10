@@ -10,6 +10,7 @@ from load_environment import ConfigLoader
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 import os
+from decrypt import decrypt_keys
 
 class ApproveWorkOrder:
 
@@ -18,23 +19,14 @@ class ApproveWorkOrder:
         db_config = config_loader.get_database_config()
         self.server = db_config['server']
         self.database = db_config['database']
-        self.username = 'consultas_diretas'
-        self.password = 'c_diretas'
+        self.username = decrypt_keys("user_diretas")
+        self.password = decrypt_keys("password_diretas")
         self.schema_main = db_config['schema_main']
         self.schema_udc = db_config['schema_udc']
         self.root_path = os.path.dirname(os.path.abspath(__file__))
 
     def cria_Conn(self):
-        # connection_string = (
-        #     f"DRIVER={{SQL Server}};"
-        #     f"SERVER={self.server};"
-        #     f"DATABASE={self.database};"
-        #     f"UID={self.username};"
-        #     f"PWD={self.password}"
-        # )
-        # connection_url = URL.create("mssql+pyodbc", query={"odbc_connect": connection_string})
-        # engine = create_engine(connection_url)
-        # return engine
+
         conn_str = f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password}'
         try:
             conn = pyodbc.connect(conn_str)
@@ -44,20 +36,6 @@ class ApproveWorkOrder:
             return None
 
 
-    # def __init__(self):
-    #     self.server = 'DBDEV'
-    #     self.database = 'JDE_CRP'
-    #     self.username = 'consultas_diretas'
-    #     self.password = 'c_diretas'
-    #
-    # def cria_Conn(self):
-    #     conn_str = f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password}'
-    #     try:
-    #         conn = pyodbc.connect(conn_str)
-    #         return conn
-    #     except Exception as e:
-    #         print("Error to connect to the database:", e)
-    #         return None
 
     def extrair_dados(self):
         query = f"""
@@ -92,7 +70,7 @@ class ApproveWorkOrder:
 
                 transport = Transport(session=session)
 
-                if environment == 'dev':    # URL do WSDL
+                if environment == 'prod':    # URL do WSDL
                     wsdl = 'https://bssvsistemas.granado.com.br:9061/PD910/CustomContabilizaOrdens?wsdl'
                 else:
                     wsdl = 'https://weberp06.granado.com.br:9052/PY910/CustomContabilizaOrdens?wsdl'
@@ -100,11 +78,8 @@ class ApproveWorkOrder:
 
                 # Credenciais
 
-                username = 'bssvpython'
-                password = 'SDddf3445'
-
-                # username = 'CCERQUEIRA'
-                # password = '241193'
+                username = decrypt_keys("user_bssv")
+                password = decrypt_keys("password_bssv")
 
                 # Criar o cliente SOAP com autenticação WS-Security
                 client = Client(wsdl=wsdl, wsse=UsernameToken(username, password), transport=transport)
