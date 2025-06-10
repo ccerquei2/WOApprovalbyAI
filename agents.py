@@ -130,15 +130,7 @@ class VariationReviewerAgents():
 
 
 class CostDecisionAgents():
-    # def __init__(self):
-    #     self.llm = ChatGroq(
-    #             api_key="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",
-    #             # model="mixtral-8x7b-32768"
-    #             # model="Llama3-8b-8192"
-    #             model="Llama3-70b-8192"
-    #
-    #     )
-    #
+
 
     def cost_variation_analysis_agent(self, model_llm):
         return Agent(
@@ -183,13 +175,7 @@ class CostDecisionAgents():
 
 
 class CostVariationReviewerAgents:
-    # def __init__(self):
-    #     self.llm = ChatGroq(
-    #         api_key="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",
-    #         # model="mixtral-8x7b-32768"
-    #         # model="Llama3-8b-8192"
-    #         model="Llama3-70b-8192"
-    #     )
+
 
     def cost_variation_reviewer_agent(self, model_llm):
         return Agent(

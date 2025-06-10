@@ -16,8 +16,9 @@ class AnaliseErros:
     def __init__(self):
         self.server = 'DBDEV'
         self.database = 'JDE_CRP'
-        self.username = 'consultas_diretas'
-        self.password = 'c_diretas'
+        self.username = decrypt_keys("user_diretas")
+        self.password = decrypt_keys("password_diretas")
+
 
     def cria_Conn(self):
         conn_str = f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password}'
