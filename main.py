@@ -116,6 +116,7 @@ import json
 import os
 from Appove_WO import ApproveWorkOrder
 from Email import PrepareEmail
+from aiwo_logger import DBLogger, new_execution, db_logged
 
 
 import warnings
@@ -123,6 +124,9 @@ warnings.filterwarnings("ignore", category=UserWarning, module="__init__")
 
 # environment = 'prod'
 environment = 'dev'
+
+logger = DBLogger()
+EXEC_ID = new_execution()
 
 # def __init__(self, environment='dev'):
 
@@ -136,15 +140,23 @@ class Analise_WO:
         else:
             return None
 
-def main(seq_key, ordem, justificativa, groq_model):
+@db_logged(step="LoadInputs", phase="Init")
+def load_inputs(seq_key, ordem):
     classificaWo = Classify_WorkOrder.Analise()
-    df = classificaWo.extrair_dados(seq_key,ordem)
-    df_qtd = classificaWo.extrair_dados_qtd(seq_key,ordem)
+    df = classificaWo.extrair_dados(seq_key, ordem)
+    df_qtd = classificaWo.extrair_dados_qtd(seq_key, ordem)
+    return classificaWo, df, df_qtd
+
+def main(seq_key, ordem, justificativa, groq_model):
+    logger.log(level="INFO", step="StartApproval", order=ordem, seq_key=seq_key,
+               execution_id=EXEC_ID, phase="Init", message="Approval run started")
+
+    classificaWo, df, df_qtd = load_inputs(seq_key, ordem)
 
     predicao = ''
     resultado = ''
     if df is not None:
-        resultado = classificaWo.classificar_ordem(df)
+        resultado = classificaWo.classificar_ordem(df, logger=logger, execution_id=EXEC_ID)
         predicao = resultado['Predicted_OUTCOME'].iloc[0]
         if predicao == 'APROVADO AUTOMATICAMENTE':
             predicao = 'APROVADO COM JUSTIFICATIVA SETOR CUSTOS'
@@ -164,7 +176,7 @@ def main(seq_key, ordem, justificativa, groq_model):
 
     if decisao_aprovar == 1 or decisao_aprovar == 3:
         print('Um ou mais valores extrapolaram os limites de aprovação via ''Agentes AI'', Segue detalhamento:\n', json_avalia_limites_str)
-        try_approve = Agents_PipeLine.PipeLineCoastJustify()
+        try_approve = Agents_PipeLine.PipeLineCoastJustify(logger=logger, execution_id=EXEC_ID)
         try_approve.insert_approval_result(seq_key,
                                            float(json_avalia_limites[0]['ORDEM']),
                                            decisao_aprovar,
@@ -178,6 +190,9 @@ def main(seq_key, ordem, justificativa, groq_model):
         text_email = generate_email.create_report_html(df_qtd, json_avalia_limites, 'erro_faixas')
         generate_email.send_email( f"Alerta: Ordem {int(ordem)} Excedeu os Limites de Aprovação Automática", text_email, "ccerquei2@gmail.com",
                                       "aprovacao_ordens@granadophebo.com.br")
+        logger.log(level="INFO", step="FinalDecision", order=ordem, seq_key=seq_key,
+                   execution_id=EXEC_ID, phase="Post-action", decision=str(decisao_aprovar),
+                   message="Decision completed")
         # print(text_email)
 
 
@@ -199,7 +214,7 @@ def main(seq_key, ordem, justificativa, groq_model):
 
 
         if predicao == 'APROVADO COM JUSTIFICATIVA SETOR CUSTOS':
-            try_approve = Agents_PipeLine.PipeLineCoastJustify()
+            try_approve = Agents_PipeLine.PipeLineCoastJustify(logger=logger, execution_id=EXEC_ID)
             # try_approve.cost_approval_decision(df, decisao_aprovar, json_avalia_limites_str)
             result =  try_approve.execute_with_retries2(df, '', decisao_aprovar, json_avalia_limites_str,None)
 
@@ -207,12 +222,15 @@ def main(seq_key, ordem, justificativa, groq_model):
                 return_approve = BSSVApprove.ApproveOrderJDE(environment, df['ORDEM'].iloc[0])
                 print(return_approve)
 
+            logger.log(level="INFO", step="FinalDecision", order=ordem, seq_key=seq_key,
+                       execution_id=EXEC_ID, phase="Post-action", decision=str(decisao_aprovar),
+                       message="Decision completed")
             os._exit(1)
 
         else:
 
             if justificativa == None or justificativa == '':
-                try_approve = Agents_PipeLine.PipeLineCoastJustify()
+                try_approve = Agents_PipeLine.PipeLineCoastJustify(logger=logger, execution_id=EXEC_ID)
                 try_approve.insert_approval_result(seq_key,
                                                    float(json_avalia_limites[0]['ORDEM']),
                                                    decisao_aprovar,
@@ -229,6 +247,9 @@ def main(seq_key, ordem, justificativa, groq_model):
                                           "ccerquei2@gmail.com",
                                           "aprovacao_ordens@granadophebo.com.br")
 
+                logger.log(level="INFO", step="FinalDecision", order=ordem, seq_key=seq_key,
+                           execution_id=EXEC_ID, phase="Post-action", decision=str(decisao_aprovar),
+                           message="Decision completed")
                 os._exit(1)
 
             else:
@@ -238,7 +259,7 @@ def main(seq_key, ordem, justificativa, groq_model):
                 print(fab_justificativa)
                 print(resultado)
 
-                try_approve = Agents_PipeLine.PipeLineCoastJustify()
+                try_approve = Agents_PipeLine.PipeLineCoastJustify(logger=logger, execution_id=EXEC_ID)
                 # try_approve.approval_decision(df, fab_justificativa, decisao_aprovar, json_avalia_limites_str)
                 # try_approve.execute_with_retries2(df, fab_justificativa, decisao_aprovar, json_avalia_limites_str,
                 #                                   groq_model)
@@ -253,6 +274,9 @@ def main(seq_key, ordem, justificativa, groq_model):
                     return_approve = BSSVApprove.ApproveOrderJDE(environment, df['ORDEM'].iloc[0])
                     print(return_approve)
 
+                logger.log(level="INFO", step="FinalDecision", order=ordem, seq_key=seq_key,
+                           execution_id=EXEC_ID, phase="Post-action", decision=str(decisao_aprovar),
+                           message="Decision completed")
                 os._exit(1)
 
 
