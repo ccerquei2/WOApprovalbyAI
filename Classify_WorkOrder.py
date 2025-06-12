@@ -276,21 +276,38 @@ class Analise:
 
         return df_normalized, identifiers
 
-    def classificar_ordem(self, df):
-        # Carregar o modelo treinado
+    def classificar_ordem(self, df, logger=None, execution_id=None):
+        """Realiza a inferência do modelo RandomForest."""
         model_path = os.path.join(self.root_path, 'best_random_forest_model.joblib')
         model = joblib.load(model_path)
 
-        # Pré-processar os dados
         df_normalized, identifiers = self.preprocess_data(df)
 
-        # Realizar a classificação
         predictions = model.predict(df_normalized)
 
-        # Adicionar as previsões ao DataFrame original
+        prob = None
+        if hasattr(model, "predict_proba"):
+            try:
+                prob = float(model.predict_proba(df_normalized)[0].max())
+            except Exception:
+                prob = None
+
         df['Predicted_OUTCOME'] = predictions
 
-        # Restaurar os identificadores
         result_df = pd.concat([identifiers.reset_index(drop=True), df.reset_index(drop=True)], axis=1)
+
+        if logger and execution_id is not None:
+            logger.log(
+                level="INFO",
+                step="ModelInference",
+                order=int(result_df['ORDEM'].iloc[0]),
+                seq_key=int(result_df['SEQ_KEY'].iloc[0]),
+                execution_id=execution_id,
+                phase="Inference",
+                model_name="RandomForest",
+                model_version="1.0",
+                model_probability=prob,
+                message="Model inference completed"
+            )
 
         return result_df
