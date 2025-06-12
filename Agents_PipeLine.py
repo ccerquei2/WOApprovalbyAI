@@ -18,6 +18,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from load_environment import ConfigLoader
 from decrypt import decrypt_keys
+from aiwo_logger import db_logged
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="__init__")
@@ -56,7 +57,7 @@ model1 = load_model()
 
 class PipeLineCoastJustify:
 
-    def __init__(self, environment='dev'):
+    def __init__(self, environment='dev', logger=None, execution_id=None):
         
         config_loader = ConfigLoader(environment)
         db_config = config_loader.get_database_config()
@@ -67,6 +68,8 @@ class PipeLineCoastJustify:
         self.schema_main = db_config['schema_main']
         self.schema_udc = db_config['schema_udc']
         self.root_path = os.path.dirname(os.path.abspath(__file__))
+        self.logger = logger
+        self.execution_id = execution_id
 
     def cria_Conn(self):
         connection_string = (
@@ -88,6 +91,7 @@ class PipeLineCoastJustify:
         day_of_year = (date - datetime(date.year, 1, 1)).days + 1
         return f"1{year:02d}{day_of_year:03d}"
 
+    @db_logged(step="InsertApprovalResult", phase="Post-action")
     def insert_approval_result(self, seq_key, ordem, decisao_aprovar, agent_return, json_avalia_limites_str,
                                approval_decision, what_llm, groq_model=None):
 
@@ -417,13 +421,19 @@ class PipeLineCoastJustify:
             return None
 
         def handle_llm_attempt(llm, llm_name, retries):
-            result = try_llm(llm, retries)
-            if result is not None:
-                print(f"Resultado da Análise com {llm_name}:", result)
-                return result
-            else:
+            result = None
+            try:
+                with db_logged(step=f"{llm_name}Call", phase="Inference", api_name=llm_name,
+                               logger=self.logger, execution_id=self.execution_id):
+                    result = try_llm(llm, retries)
+                    if result is None:
+                        raise RuntimeError(f"{llm_name} failed after all retries")
+            except Exception:
                 print(f"Falha com {llm_name} após todas as tentativas.")
                 return None
+            else:
+                print(f"Resultado da Análise com {llm_name}:", result)
+                return result
 
         try:
             # Tenta o Groq primeiro
@@ -438,6 +448,16 @@ class PipeLineCoastJustify:
 
             # Se falhar tanto com Groq quanto com OpenAI
             print("Falha total: Nenhuma LLM conseguiu completar a tarefa após todas as tentativas.")
+            if self.logger:
+                self.logger.log(
+                    level="ERROR",
+                    step="LLMCall",
+                    order=int(df['ORDEM'].iloc[0]),
+                    seq_key=int(df['SEQ_KEY'].iloc[0]),
+                    execution_id=self.execution_id,
+                    phase="Inference",
+                    message="Both LLMs failed"
+                )
             return None
 
         finally:

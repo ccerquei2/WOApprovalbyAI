@@ -116,13 +116,17 @@ import json
 import os
 from Appove_WO import ApproveWorkOrder
 from Email import PrepareEmail
-
-
+from aiwo_logger import DBLogger, new_execution, db_logged
 import warnings
+
 warnings.filterwarnings("ignore", category=UserWarning, module="__init__")
+
 
 # environment = 'prod'
 environment = 'dev'
+
+logger = DBLogger()
+EXEC_ID = new_execution()
 
 # def __init__(self, environment='dev'):
 
@@ -136,15 +140,29 @@ class Analise_WO:
         else:
             return None
 
-def main(seq_key, ordem, justificativa, groq_model):
+@db_logged(step="LoadInputs", phase="Init")
+def load_inputs(seq_key, ordem):
     classificaWo = Classify_WorkOrder.Analise()
-    df = classificaWo.extrair_dados(seq_key,ordem)
-    df_qtd = classificaWo.extrair_dados_qtd(seq_key,ordem)
+    df = classificaWo.extrair_dados(seq_key, ordem)
+    df_qtd = classificaWo.extrair_dados_qtd(seq_key, ordem)
+    return classificaWo, df, df_qtd
+
+def main(seq_key, ordem, justificativa, groq_model):
+    logger.log(
+                level="INFO",
+                step="StartApproval",
+                order=ordem,
+                seq_key=seq_key,
+                execution_id=EXEC_ID,
+                phase="Init",
+                message="Approval run started")
+
+    classificaWo, df, df_qtd = load_inputs(seq_key, ordem)
 
     predicao = ''
     resultado = ''
     if df is not None:
-        resultado = classificaWo.classificar_ordem(df)
+        resultado = classificaWo.classificar_ordem(df, logger=logger, execution_id=EXEC_ID)
         predicao = resultado['Predicted_OUTCOME'].iloc[0]
         if predicao == 'APROVADO AUTOMATICAMENTE':
             predicao = 'APROVADO COM JUSTIFICATIVA SETOR CUSTOS'
@@ -163,99 +181,148 @@ def main(seq_key, ordem, justificativa, groq_model):
     BSSVApprove = ApproveWorkOrder()
 
     if decisao_aprovar == 1 or decisao_aprovar == 3:
-        print('Um ou mais valores extrapolaram os limites de aprovação via ''Agentes AI'', Segue detalhamento:\n', json_avalia_limites_str)
-        try_approve = Agents_PipeLine.PipeLineCoastJustify()
-        try_approve.insert_approval_result(seq_key,
-                                           float(json_avalia_limites[0]['ORDEM']),
-                                           decisao_aprovar,
-                                           'Um ou mais valores extrapolaram os limites de aprovação via Agentes AI',
-                                           json_avalia_limites_str,
-                                           'Decisão de Validação: Não Validado',
-                                           '')
+        try:
 
-        generate_email = PrepareEmail()
-        # text_email = generate_email.create_report_text(df_qtd, json_avalia_limites)
-        text_email = generate_email.create_report_html(df_qtd, json_avalia_limites, 'erro_faixas')
-        generate_email.send_email( f"Alerta: Ordem {int(ordem)} Excedeu os Limites de Aprovação Automática", text_email, "ccerquei2@gmail.com",
-                                      "aprovacao_ordens@granadophebo.com.br")
-        # print(text_email)
+            print('Um ou mais valores extrapolaram os limites de aprovação via ''Agentes AI'', Segue detalhamento:\n', json_avalia_limites_str)
+            try_approve = Agents_PipeLine.PipeLineCoastJustify(logger=logger, execution_id=EXEC_ID)
+            try_approve.insert_approval_result(seq_key,
+                                               float(json_avalia_limites[0]['ORDEM']),
+                                               decisao_aprovar,
+                                               'Um ou mais valores extrapolaram os limites de aprovação via Agentes AI',
+                                               json_avalia_limites_str,
+                                               'Decisão de Validação: Não Validado',
+                                               '')
 
+            generate_email = PrepareEmail()
+            # text_email = generate_email.create_report_text(df_qtd, json_avalia_limites)
+            text_email = generate_email.create_report_html(df_qtd, json_avalia_limites, 'erro_faixas')
+            generate_email.send_email( f"Alerta: Ordem {int(ordem)} Excedeu os Limites de Aprovação Automática", text_email, "ccerquei2@gmail.com",
+                                          "aprovacao_ordens@granadophebo.com.br")
+            logger.log(
+                        level="INFO",
+                        step="FinalDecision",
+                        order=ordem,
+                        seq_key=seq_key,
+                        execution_id=EXEC_ID,
+                        phase="Post-action",
+                        decision=str(decisao_aprovar),
+                        message="Decision completed")
 
-    else:
-        #############################################################################################################
-        # Adicionar Tratamento Novo Ricardo Stoeterau:
-        # Se Predição solicita Justificativa da Fabrica, fluxo deverá
-        # Verificar se a variação está relacionada a  quantidade de materia prima ou quantidade de hora
-        #############################################################################################################
-        if predicao == 'REQUER JUSTIFICATIVA FABRICA':
-            verifica_erro_qtd = []
-            verifica_erro_qtd = classificaWo.justificativa_fabrica(seq_key, ordem)
-            if verifica_erro_qtd is None or verifica_erro_qtd.empty:
-                # Caso variações de Quantidade estejam abaixo das faixas para requerer a justificativa da fabrica
-                # o fluxo deve ser direcionado para 'APROVADO COM JUSTIFICATIVA SETOR CUSTOS'
-                predicao = 'APROVADO COM JUSTIFICATIVA SETOR CUSTOS'
-                decisao_aprovar = -2
-
-
-
-        if predicao == 'APROVADO COM JUSTIFICATIVA SETOR CUSTOS':
-            try_approve = Agents_PipeLine.PipeLineCoastJustify()
-            # try_approve.cost_approval_decision(df, decisao_aprovar, json_avalia_limites_str)
-            result =  try_approve.execute_with_retries2(df, '', decisao_aprovar, json_avalia_limites_str,None)
-
-            if result[1] == 'Decisão de Validação: Validado':
-                return_approve = BSSVApprove.ApproveOrderJDE(environment, df['ORDEM'].iloc[0])
-                print(return_approve)
-
+        except Exception as e:
+            print(f"Erro encontrado: {e}.")
+            os._exit(1)
+        finally:
             os._exit(1)
 
-        else:
+    else:
 
-            if justificativa == None or justificativa == '':
-                try_approve = Agents_PipeLine.PipeLineCoastJustify()
-                try_approve.insert_approval_result(seq_key,
-                                                   float(json_avalia_limites[0]['ORDEM']),
-                                                   decisao_aprovar,
-                                                   'A analise da ordem requer uma Justificativa Plausivel da Fabrica para as Variações Observadas',
-                                                   json_avalia_limites_str,
-                                                   'Decisão de Validação: Não Validado',
-                                                   '')
-                print('A analise da ordem requer uma Justificativa Plausivel da Fabrica para as Variações Observadas')
-
-                generate_email = PrepareEmail()
-                # text_email = generate_email.create_report_text(df_qtd, json_avalia_limites)
-                text_email = generate_email.create_report_html(df_qtd, json_avalia_limites, 'erro_fab')
-                generate_email.send_email(f"Alerta: Ordem {int(ordem)} Necessita de Justificativa da Fabrica", text_email,
-                                          "ccerquei2@gmail.com",
-                                          "aprovacao_ordens@granadophebo.com.br")
-
-                os._exit(1)
-
-            else:
+        try:
+            #############################################################################################################
+            # Adicionar Tratamento Novo Ricardo Stoeterau:
+            # Se Predição solicita Justificativa da Fabrica, fluxo deverá
+            # Verificar se a variação está relacionada a  quantidade de materia prima ou quantidade de hora
+            #############################################################################################################
+            if predicao == 'REQUER JUSTIFICATIVA FABRICA':
+                verifica_erro_qtd = []
+                verifica_erro_qtd = classificaWo.justificativa_fabrica(seq_key, ordem)
+                if verifica_erro_qtd is None or verifica_erro_qtd.empty:
+                    # Caso variações de Quantidade estejam abaixo das faixas para requerer a justificativa da fabrica
+                    # o fluxo deve ser direcionado para 'APROVADO COM JUSTIFICATIVA SETOR CUSTOS'
+                    predicao = 'APROVADO COM JUSTIFICATIVA SETOR CUSTOS'
+                    decisao_aprovar = -2
 
 
-                fab_justificativa = justificativa if justificativa else Analise_WO().buscar_justificativa_fabrica(seq_key)
-                print(fab_justificativa)
-                print(resultado)
 
-                try_approve = Agents_PipeLine.PipeLineCoastJustify()
-                # try_approve.approval_decision(df, fab_justificativa, decisao_aprovar, json_avalia_limites_str)
-                # try_approve.execute_with_retries2(df, fab_justificativa, decisao_aprovar, json_avalia_limites_str,
-                #                                   groq_model)
-
-                # try_approve.approval_decision_qtd(df_qtd, fab_justificativa, decisao_aprovar, 0, json_avalia_limites_str,
-                #                                   groq_model)
-
-                result = try_approve.execute_with_retries2(df_qtd, fab_justificativa, decisao_aprovar, json_avalia_limites_str, groq_model)
-                # print(result[1])
+            if predicao == 'APROVADO COM JUSTIFICATIVA SETOR CUSTOS':
+                try_approve = Agents_PipeLine.PipeLineCoastJustify(logger=logger, execution_id=EXEC_ID)
+                # try_approve.cost_approval_decision(df, decisao_aprovar, json_avalia_limites_str)
+                result =  try_approve.execute_with_retries2(df, '', decisao_aprovar, json_avalia_limites_str,None)
 
                 if result[1] == 'Decisão de Validação: Validado':
                     return_approve = BSSVApprove.ApproveOrderJDE(environment, df['ORDEM'].iloc[0])
                     print(return_approve)
 
+                logger.log(
+                            level="INFO",
+                            step="FinalDecision",
+                            order=ordem,
+                            seq_key=seq_key,
+                            execution_id=EXEC_ID,
+                            phase="Post-action",
+                            decision=str(decisao_aprovar),
+                            message="Decision completed")
                 os._exit(1)
 
 
+            else:
+
+                if justificativa == None or justificativa == '':
+                    try_approve = Agents_PipeLine.PipeLineCoastJustify(logger=logger, execution_id=EXEC_ID)
+                    try_approve.insert_approval_result(seq_key,
+                                                       float(json_avalia_limites[0]['ORDEM']),
+                                                       decisao_aprovar,
+                                                       'A analise da ordem requer uma Justificativa Plausivel da Fabrica para as Variações Observadas',
+                                                       json_avalia_limites_str,
+                                                       'Decisão de Validação: Não Validado',
+                                                       '')
+                    print('A analise da ordem requer uma Justificativa Plausivel da Fabrica para as Variações Observadas')
+
+                    generate_email = PrepareEmail()
+                    # text_email = generate_email.create_report_text(df_qtd, json_avalia_limites)
+                    text_email = generate_email.create_report_html(df_qtd, json_avalia_limites, 'erro_fab')
+                    generate_email.send_email(f"Alerta: Ordem {int(ordem)} Necessita de Justificativa da Fabrica", text_email,
+                                              "ccerquei2@gmail.com",
+                                              "aprovacao_ordens@granadophebo.com.br")
+
+                    logger.log(
+                                level="INFO",
+                                step="FinalDecision",
+                                order=ordem,
+                                seq_key=seq_key,
+                                execution_id=EXEC_ID,
+                                phase="Post-action",
+                                decision=str(decisao_aprovar),
+                                message="Decision completed")
+                    os._exit(1)
+
+                else:
+
+
+                    fab_justificativa = justificativa if justificativa else Analise_WO().buscar_justificativa_fabrica(seq_key)
+                    print(fab_justificativa)
+                    print(resultado)
+
+                    try_approve = Agents_PipeLine.PipeLineCoastJustify(logger=logger, execution_id=EXEC_ID)
+                    # try_approve.approval_decision(df, fab_justificativa, decisao_aprovar, json_avalia_limites_str)
+                    # try_approve.execute_with_retries2(df, fab_justificativa, decisao_aprovar, json_avalia_limites_str,
+                    #                                   groq_model)
+
+                    # try_approve.approval_decision_qtd(df_qtd, fab_justificativa, decisao_aprovar, 0, json_avalia_limites_str,
+                    #                                   groq_model)
+
+                    result = try_approve.execute_with_retries2(df_qtd, fab_justificativa, decisao_aprovar, json_avalia_limites_str, groq_model)
+                    # print(result[1])
+
+                    if result[1] == 'Decisão de Validação: Validado':
+                        return_approve = BSSVApprove.ApproveOrderJDE(environment, df['ORDEM'].iloc[0])
+                        print(return_approve)
+
+                    logger.log(
+                                level="INFO",
+                                step="FinalDecision",
+                                order=ordem,
+                                seq_key=seq_key,
+                                execution_id=EXEC_ID,
+                                phase="Post-action",
+                                decision=str(decisao_aprovar),
+                                message="Decision completed")
+                    os._exit(1)
+
+        except Exception as e:
+            print(f"Erro encontrado: {e}.")
+            os._exit(1)
+        finally:
+            os._exit(1)
 
 
 
@@ -268,3 +335,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args.SEQ_KEY, args.ORDEM, args.JUSTIFICATIVA, args.GROQ_MODEL)
+
