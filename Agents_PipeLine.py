@@ -91,6 +91,7 @@ class PipeLineCoastJustify:
         day_of_year = (date - datetime(date.year, 1, 1)).days + 1
         return f"1{year:02d}{day_of_year:03d}"
 
+    @db_logged(step="InsertApprovalResult", phase="Post-action")
     def insert_approval_result(self, seq_key, ordem, decisao_aprovar, agent_return, json_avalia_limites_str,
                                approval_decision, what_llm, groq_model=None):
 
@@ -420,15 +421,19 @@ class PipeLineCoastJustify:
             return None
 
         def handle_llm_attempt(llm, llm_name, retries):
-            with db_logged(step=f"{llm_name}Call", phase="Inference", api_name=llm_name,
-                           logger=self.logger, execution_id=self.execution_id):
-                result = try_llm(llm, retries)
-            if result is not None:
-                print(f"Resultado da Análise com {llm_name}:", result)
-                return result
-            else:
+            result = None
+            try:
+                with db_logged(step=f"{llm_name}Call", phase="Inference", api_name=llm_name,
+                               logger=self.logger, execution_id=self.execution_id):
+                    result = try_llm(llm, retries)
+                    if result is None:
+                        raise RuntimeError(f"{llm_name} failed after all retries")
+            except Exception:
                 print(f"Falha com {llm_name} após todas as tentativas.")
                 return None
+            else:
+                print(f"Resultado da Análise com {llm_name}:", result)
+                return result
 
         try:
             # Tenta o Groq primeiro
@@ -443,6 +448,14 @@ class PipeLineCoastJustify:
 
             # Se falhar tanto com Groq quanto com OpenAI
             print("Falha total: Nenhuma LLM conseguiu completar a tarefa após todas as tentativas.")
+            if self.logger:
+                self.logger.log(
+                    level="ERROR",
+                    step="LLMCall",
+                    execution_id=self.execution_id,
+                    phase="Inference",
+                    message="Both LLMs failed"
+                )
             return None
 
         finally:

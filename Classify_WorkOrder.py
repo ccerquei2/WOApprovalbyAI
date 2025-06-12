@@ -300,8 +300,8 @@ class Analise:
             logger.log(
                 level="INFO",
                 step="ModelInference",
-                order=int(result_df['ORDEM'].iloc[0]),
-                seq_key=int(result_df['SEQ_KEY'].iloc[0]),
+                order=int(df['ORDEM'].iloc[0]),
+                seq_key=int(df['SEQ_KEY'].iloc[0]),
                 execution_id=execution_id,
                 phase="Inference",
                 model_name="RandomForest",
